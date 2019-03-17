@@ -46,7 +46,7 @@ void *connection(void *p) {
 	temp = temp/sizeof(char);
 	recv_buf[temp-2] = '\0';
 		
-	if ((strncmp(recv_buf, "GET ", 4)) != 0) {								//check to make sure that a GET request was made
+	if ((strncmp(recv_buf, "GET ", 4)) != 0) {			//check to make sure that a GET request was made
 		strcpy(errormsg, "Invalid Command Entered\nPlease Use The Format: GET <file_name.html>\n");
 		send(*connfd_thread, errormsg, 69, 0);
 	}
@@ -59,59 +59,59 @@ void *connection(void *p) {
 			if ( (recv_buf[i] == '\0') || (recv_buf[i] == '\n') || (recv_buf[i] == ' ') ){ //If the end of the file path is reached, break.
 				break;
 			}
-			else if ( recv_buf[i] == '/') { 					//do nothing except increment i to jump the forward slash
+			else if ( recv_buf[i] == '/') { 		//do nothing except increment i to jump the forward slash
 				--j;
 			}
 			else {
-				file_name[j] = recv_buf[i];				//copy the file name character by character
+				file_name[j] = recv_buf[i];		//copy the file name character by character
 				
 			}
 		}	
-		file_name[j] = '\0';							//add a null terminator to the end of the file name string
+		file_name[j] = '\0';					//add a null terminator to the end of the file name string
 		printf("%s", file_name);	
 
 	
-	html_file = fopen(file_name, "r");					//open the html file
-		if (html_file == NULL) {						//check to make sure fopen worked(if there was a file) if there was no file, return 404 message
-			send_buf = (char *)malloc(24);
-			strcpy(send_buf, "HTTP/1.1 404 Not Found\n\n");
-			send(*connfd_thread, send_buf, 24, 0);
-		}
-		else {											//If the file did open without errors
-			time(&local);								//Get the current time and date
-			ptr = localtime(&local);
-			strftime(times, 30, "%a, %d %b %Y %X %Z", ptr);
+	html_file = fopen(file_name, "r");				//open the html file
+	if (html_file == NULL) {					//check to make sure fopen worked(if there was a file) 
+		send_buf = (char *)malloc(24);
+		strcpy(send_buf, "HTTP/1.1 404 Not Found\n\n");		//if there was no file, return 404 message
+		send(*connfd_thread, send_buf, 24, 0);
+	}
+	else {							//If the file did open without errors
+		time(&local);					//Get the current time and date
+		ptr = localtime(&local);
+		strftime(times, 30, "%a, %d %b %Y %X %Z", ptr);
 
-			fseek(html_file, 0, SEEK_END);				//seek to the end of the tfile
-			file_size = ftell(html_file);				//get the byte offset of the pointer(the size of the file)
-			fseek(html_file, 0, SEEK_SET);				//seek back to the begining of the file
-			file_data = (char *)malloc(file_size + 1);		//allocate memmory for the file data
-			fread(file_data, 1, (file_size), html_file);	//read the file data into a string
-			file_data[file_size] = '\0';
+		fseek(html_file, 0, SEEK_END);			//seek to the end of the tfile
+		file_size = ftell(html_file);			//get the byte offset of the pointer(the size of the file)
+		fseek(html_file, 0, SEEK_SET);			//seek back to the begining of the file
+		file_data = (char *)malloc(file_size + 1);	//allocate memmory for the file data
+		fread(file_data, 1, (file_size), html_file);	//read the file data into a string
+		file_data[file_size] = '\0';
 
-			sprintf(send_buf_temp, "HTTP/1.1 200 OK\nDate: %s\nContent Length: %d\nConnection: close\nContent-Type: text/html\n\n%s\n\n", times, file_size, file_data); //format and create string for output to client
-			int a = strlen(send_buf_temp);		//get the length of the string we just created
-			send_buf = (char *)malloc(a);		//allocate space for the reply
-			strcpy(send_buf, send_buf_temp);	//copy to the correctly sized string
-			send(*connfd_thread, send_buf, a, 0);	//send the info to the client
-			free(file_data);						//free the allocated memory for file data
+		sprintf(send_buf_temp, "HTTP/1.1 200 OK\nDate: %s\nContent Length: %d\nConnection: close\nContent-Type: text/html\n\n%s\n\n", times, file_size, file_data); //format and create string for output to client
+		int a = strlen(send_buf_temp);			//get the length of the string we just created
+		send_buf = (char *)malloc(a);			//allocate space for the reply
+		strcpy(send_buf, send_buf_temp);		//copy to the correctly sized string
+		send(*connfd_thread, send_buf, a, 0);		//send the info to the client
+		free(file_data);				//free the allocated memory for file data
 		}
-	free(send_buf);								//free the allocated memory for the send buffer
-	fclose(html_file);							//close the html file
-	pthread_mutex_lock(&mutex);					//mutex lock so that the stats file can only be accessed by one thread at a time
-	output_file = fopen("stats.txt","a");		//open stats file
+	free(send_buf);						//free the allocated memory for the send buffer
+	fclose(html_file);					//close the html file
+	pthread_mutex_lock(&mutex);				//mutex lock so that the stats file can only be accessed by one thread at a time
+	output_file = fopen("stats.txt","a");			//open stats file
 	sprintf(output, "File: %s requested at %s\n", file_name, times);	//format string
 	outputsize = strlen(output);										
-	fwrite(output, outputsize, 1, output_file);							//write to stats file
-	fclose(output_file);												//close the file
-	pthread_mutex_unlock(&mutex);										//unlock
+	fwrite(output, outputsize, 1, output_file);					//write to stats file
+	fclose(output_file);								//close the file
+	pthread_mutex_unlock(&mutex);							//unlock
 
 
 	}
 	
-	close(*connfd_thread);												//close the current connection
-	fflush(stdout);														//make sure all output is printed
-	pthread_exit(NULL);													//exit the pthread with null
+	close(*connfd_thread);								//close the current connection
+	fflush(stdout);									//make sure all output is printed
+	pthread_exit(NULL);								//exit the pthread with null
 }
 int main() {
 	int sfd;
@@ -137,7 +137,7 @@ int main() {
 		return (errno);
 	}
 	
-	while(thread_count < 100){						//loop to count the number of connections/threads
+	while(thread_count < 100){					//loop to count the number of connections/threads
 	if( listen(sfd, 10) != 0) {
 		perror("Listen Error");
 		return (errno);
@@ -150,10 +150,10 @@ int main() {
 		return (errno);
 	}
 	
-	pthread_create(&threads[thread_count], NULL, connection, &connfd[thread_count]);		//create a thread and receive data
+	pthread_create(&threads[thread_count], NULL, connection, &connfd[thread_count]);	//create a thread and receive data
 	pthread_join(threads[thread_count], NULL);												//join the finished thread and continue
 	thread_count++;
 }
-	close(sfd);							//close the socket
+	close(sfd);						//close the socket
 	return 0;
 }
